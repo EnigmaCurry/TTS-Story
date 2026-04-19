@@ -1,0 +1,16 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.gitignore
+*.bat
+jobs.db
+data/output/
+data/voice_prompts/
+engines/omnivoice/.venv/
+temp_requirements_filtered*.txt
+*.egg-info/
+dist/
+build/
+.env

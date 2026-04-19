@@ -1,0 +1,22 @@
+services:
+  tts-story:
+    build: .
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tts-story.rule=Host(`tts.example.com`)"
+      - "traefik.http.routers.tts-story.entrypoints=websecure"
+      #- "traefik.http.routers.tts-story.tls.certresolver=default"
+      - "traefik.http.services.tts-story.loadbalancer.server.port=5000"
+    volumes:
+      - ./data:/app/data
+      - ./config.json:/app/config.json
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
