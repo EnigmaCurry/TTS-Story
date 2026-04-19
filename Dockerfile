@@ -16,6 +16,9 @@ RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
 
 WORKDIR /app
 
+# Upgrade pip and setuptools (Ubuntu 22.04 ships old versions that break sox build)
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+
 # Install PyTorch with CUDA 12.4
 RUN pip install --no-cache-dir \
     torch==2.6.0+cu124 \
@@ -23,15 +26,16 @@ RUN pip install --no-cache-dir \
     torchaudio==2.6.0+cu124 \
     --index-url https://download.pytorch.org/whl/cu124
 
-# Install sox python package first (funasr dependency, fails with numpy 2.x during setup)
-RUN pip install --no-cache-dir sox || true
-
-# Install Python dependencies (excluding torch and pyopenjtalk which needs special handling)
+# Install Python dependencies (excluding torch, pyopenjtalk, funasr which need special handling)
 COPY requirements.txt .
-RUN grep -viE "^(torch|pyopenjtalk|#|$)" requirements.txt \
+RUN grep -viE "^(torch|pyopenjtalk|funasr|#)" requirements.txt \
+    | grep -v "^$" \
     > /tmp/filtered_requirements.txt \
     && pip install --no-cache-dir -r /tmp/filtered_requirements.txt \
     && rm /tmp/filtered_requirements.txt
+
+# Install funasr separately (its sox dependency needs numpy already installed)
+RUN pip install --no-cache-dir funasr || echo "WARNING: funasr failed"
 
 # Install pyopenjtalk (Japanese TTS support)
 RUN pip install --no-cache-dir pyopenjtalk || echo "WARNING: pyopenjtalk failed"
