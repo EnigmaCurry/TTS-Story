@@ -1,4 +1,11 @@
-FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04
+ARG GPU_TYPE=cpu
+
+# Base image selection per GPU type
+FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04 AS base-nvidia
+FROM rocm/pytorch:rocm6.2_ubuntu22.04_py3.10_pytorch_release_2.3.0 AS base-rocm
+FROM ubuntu:22.04 AS base-cpu
+
+FROM base-${GPU_TYPE} AS runtime
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
@@ -19,12 +26,19 @@ WORKDIR /app
 # Upgrade pip and setuptools (Ubuntu 22.04 ships old versions that break sox build)
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
-# Install PyTorch with CUDA 12.4
-RUN pip install --no-cache-dir \
-    torch==2.6.0+cu124 \
-    torchvision==0.21.0+cu124 \
-    torchaudio==2.6.0+cu124 \
-    --index-url https://download.pytorch.org/whl/cu124
+# Install PyTorch (version and index URL depend on GPU type)
+ARG GPU_TYPE=cpu
+RUN case "${GPU_TYPE}" in \
+      nvidia) pip install --no-cache-dir \
+                torch==2.6.0+cu124 torchvision==0.21.0+cu124 torchaudio==2.6.0+cu124 \
+                --index-url https://download.pytorch.org/whl/cu124 ;; \
+      rocm)   pip install --no-cache-dir \
+                torch==2.6.0+rocm6.2.4 torchvision==0.21.0+rocm6.2.4 torchaudio==2.6.0+rocm6.2.4 \
+                --index-url https://download.pytorch.org/whl/rocm6.2.4 ;; \
+      *)      pip install --no-cache-dir \
+                torch==2.6.0+cpu torchvision==0.21.0+cpu torchaudio==2.6.0+cpu \
+                --index-url https://download.pytorch.org/whl/cpu ;; \
+    esac
 
 # Install Python dependencies (excluding torch, pyopenjtalk, funasr which need special handling)
 COPY requirements.txt .
