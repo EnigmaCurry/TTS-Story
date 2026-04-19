@@ -66,8 +66,10 @@ RUN pip install --no-cache-dir hf_xet || true
 # Copy application code
 COPY . .
 
-# Create data directories
-RUN mkdir -p data/voice_prompts data/output
+# Create data directories and symlink config.json into the data volume for persistence
+RUN mkdir -p data/voice_prompts data/output \
+    && mv config.json data/config.json \
+    && ln -s data/config.json config.json
 
 EXPOSE 5000
 
