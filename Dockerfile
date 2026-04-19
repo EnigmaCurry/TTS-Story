@@ -40,28 +40,27 @@ RUN case "${GPU_TYPE}" in \
                 --index-url https://download.pytorch.org/whl/cpu ;; \
     esac
 
-# Install Python dependencies (excluding torch, pyopenjtalk, funasr which need special handling)
+# Install core Python dependencies (excluding engines and packages needing special handling)
 COPY requirements.txt .
-RUN grep -viE "^(torch|pyopenjtalk|funasr|#)" requirements.txt \
+RUN grep -viE "^(torch|pyopenjtalk|funasr|voxcpm|qwen-tts|pocket-tts|chatterbox|#)" requirements.txt \
     | grep -v "^$" \
     > /tmp/filtered_requirements.txt \
     && pip install --no-cache-dir -r /tmp/filtered_requirements.txt \
     && rm /tmp/filtered_requirements.txt
 
-# Install funasr separately (its sox dependency needs numpy already installed)
+# Install TTS engine packages separately (they have conflicting deps)
+RUN pip install --no-cache-dir chatterbox-tts || \
+    (pip install --no-cache-dir chatterbox-tts --no-deps || true)
+RUN pip install --no-cache-dir voxcpm --no-deps || echo "WARNING: voxcpm failed"
+RUN pip install --no-cache-dir qwen-tts || echo "WARNING: qwen-tts failed"
+RUN pip install --no-cache-dir pocket-tts || echo "WARNING: pocket-tts failed"
 RUN pip install --no-cache-dir funasr || echo "WARNING: funasr failed"
 
 # Install pyopenjtalk (Japanese TTS support)
 RUN pip install --no-cache-dir pyopenjtalk || echo "WARNING: pyopenjtalk failed"
 
-# Install chatterbox-tts
-RUN pip install --no-cache-dir chatterbox-tts || \
-    (pip install --no-cache-dir chatterbox-tts --no-deps || true)
-
-# Install scipy (needed by pocket-tts)
+# Install scipy and hf_xet
 RUN pip install --no-cache-dir scipy
-
-# Install hf_xet for faster HuggingFace downloads
 RUN pip install --no-cache-dir hf_xet || true
 
 # Copy application code
