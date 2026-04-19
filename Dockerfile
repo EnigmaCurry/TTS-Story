@@ -23,10 +23,12 @@ RUN pip install --no-cache-dir \
     torchaudio==2.6.0+cu124 \
     --index-url https://download.pytorch.org/whl/cu124
 
+# Install sox python package first (funasr dependency, fails with numpy 2.x during setup)
+RUN pip install --no-cache-dir sox || true
+
 # Install Python dependencies (excluding torch and pyopenjtalk which needs special handling)
 COPY requirements.txt .
-RUN grep -vi "^torch" requirements.txt \
-    | grep -vi "^pyopenjtalk" \
+RUN grep -viE "^(torch|pyopenjtalk|#|$)" requirements.txt \
     > /tmp/filtered_requirements.txt \
     && pip install --no-cache-dir -r /tmp/filtered_requirements.txt \
     && rm /tmp/filtered_requirements.txt
