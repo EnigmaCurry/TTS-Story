@@ -48,13 +48,14 @@ RUN grep -viE "^(torch|pyopenjtalk|funasr|voxcpm|qwen-tts|pocket-tts|chatterbox|
     && pip install --no-cache-dir -r /tmp/filtered_requirements.txt \
     && rm /tmp/filtered_requirements.txt
 
-# Install TTS engine packages separately (they have conflicting deps)
-RUN pip install --no-cache-dir chatterbox-tts || \
-    (pip install --no-cache-dir chatterbox-tts --no-deps || true)
-RUN pip install --no-cache-dir voxcpm --no-deps || echo "WARNING: voxcpm failed"
-RUN pip install --no-cache-dir qwen-tts || echo "WARNING: qwen-tts failed"
-RUN pip install --no-cache-dir pocket-tts || echo "WARNING: pocket-tts failed"
-RUN pip install --no-cache-dir funasr || echo "WARNING: funasr failed"
+# Install TTS engine packages with --no-deps to prevent them overwriting our torch version
+RUN pip install --no-cache-dir --no-deps chatterbox-tts || echo "WARNING: chatterbox-tts failed"
+RUN pip install --no-cache-dir --no-deps voxcpm || echo "WARNING: voxcpm failed"
+RUN pip install --no-cache-dir --no-deps qwen-tts || echo "WARNING: qwen-tts failed"
+RUN pip install --no-cache-dir --no-deps pocket-tts || echo "WARNING: pocket-tts failed"
+RUN pip install --no-cache-dir --no-deps funasr || echo "WARNING: funasr failed"
+# Install sox python package (needed by qwen-tts and funasr, must come after numpy)
+RUN pip install --no-cache-dir sox || echo "WARNING: sox python package failed"
 
 # Install pyopenjtalk (Japanese TTS support)
 RUN pip install --no-cache-dir pyopenjtalk || echo "WARNING: pyopenjtalk failed"
