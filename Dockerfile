@@ -54,8 +54,8 @@ RUN pip install --no-cache-dir --no-deps voxcpm || echo "WARNING: voxcpm failed"
 RUN pip install --no-cache-dir --no-deps qwen-tts || echo "WARNING: qwen-tts failed"
 RUN pip install --no-cache-dir --no-deps pocket-tts || echo "WARNING: pocket-tts failed"
 RUN pip install --no-cache-dir --no-deps funasr || echo "WARNING: funasr failed"
-# Install sox python package (needed by qwen-tts and funasr, must come after numpy)
-RUN pip install --no-cache-dir sox || echo "WARNING: sox python package failed"
+# Install remaining deps needed by engine packages (not covered by requirements.txt)
+RUN pip install --no-cache-dir sox onnxruntime || echo "WARNING: engine deps partially failed"
 
 # Install pyopenjtalk (Japanese TTS support)
 RUN pip install --no-cache-dir pyopenjtalk || echo "WARNING: pyopenjtalk failed"
