@@ -1,7 +1,7 @@
 ARG GPU_TYPE=cpu
 
 # Base image selection per GPU type
-FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04 AS base-nvidia
+FROM nvidia/cuda:12.8.1-runtime-ubuntu22.04 AS base-nvidia
 FROM rocm/pytorch:rocm6.2_ubuntu22.04_py3.10_pytorch_release_2.3.0 AS base-rocm
 FROM ubuntu:22.04 AS base-cpu
 
@@ -30,8 +30,8 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 ARG GPU_TYPE=cpu
 RUN case "${GPU_TYPE}" in \
       nvidia) pip install --no-cache-dir \
-                torch==2.6.0+cu124 torchvision==0.21.0+cu124 torchaudio==2.6.0+cu124 \
-                --index-url https://download.pytorch.org/whl/cu124 ;; \
+                torch torchvision torchaudio \
+                --index-url https://download.pytorch.org/whl/cu128 ;; \
       rocm)   pip install --no-cache-dir \
                 torch==2.6.0+rocm6.2.4 torchvision==0.21.0+rocm6.2.4 torchaudio==2.6.0+rocm6.2.4 \
                 --index-url https://download.pytorch.org/whl/rocm6.2.4 ;; \
